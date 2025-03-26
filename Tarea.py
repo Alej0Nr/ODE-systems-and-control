@@ -10,7 +10,7 @@ def solve_M(A,B):
 
 def eqpair(A,B):
     x = solve_M(A,B)[:-B.shape[1]]
-    u = solve_M(A,B)[A.shape[0]]
+    u = solve_M(A,B)[B.shape[0]:]
     return x,u
 
 
