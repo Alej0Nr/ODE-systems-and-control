@@ -1,7 +1,7 @@
 import sympy as sp
 
-def solve_M(A: sp.Matrix,B: sp.Matrix):
-    M = sp.Matrix(sp.BlockMatrix([sp.eye(A.shape[0]) - A,-B]))  
+def solve_M(A, B):
+    M = sp.Matrix(sp.BlockMatrix([sp.eye(A.rows) - A,-B]))  
     return M.nullspace()
 
 
@@ -9,7 +9,7 @@ def eqpair(A,B):
     espacioNulo = solve_M(A,B)
     listaPares=[]
     for v in espacioNulo:
-        listaPares.append((v[:-B.shape[1]],v[B.shape[0]:]))
+        listaPares.append((v[:-B.cols],v[A.rows:]))
     return listaPares
 
 if __name__ == '__main__':
