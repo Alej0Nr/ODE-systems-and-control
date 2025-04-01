@@ -1,11 +1,12 @@
 import sympy as sp
 
-def solve_M(A, B):
-    M = sp.Matrix(sp.BlockMatrix([sp.eye(A.rows) - A,-B]))  
+
+def solve_M(A,B): #conviene usar Np.Array
+    M = sp.Matrix(sp.BlockMatrix([sp.eye(A.rows) - A,-B])) #eye_like(A)
+    #usar concatenate 
     return M.nullspace()
 
-
-def eqpair(A,B):
+def eqPair(A,B):
     espacioNulo = solve_M(A,B)
     listaPares=[]
     for v in espacioNulo:
@@ -17,5 +18,5 @@ if __name__ == '__main__':
     # sp.pprint(A)
     B = sp.Matrix([-1,1])
     # sp.pprint(B)
-    for par in eqpair(A,B):
+    for par in eqPair(A,B):
         sp.pprint(par)
