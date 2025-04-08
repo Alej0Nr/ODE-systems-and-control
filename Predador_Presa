@@ -1,0 +1,76 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import solve_ivp
+
+
+
+# Que graficar
+campo_de_direcciones: bool = False
+plano_temporal: bool = False
+plano_fase: bool = True
+
+
+a: float = 0.4807
+b: float = 0.02482
+c: float = 0.02756
+d: float = 0.9272
+# Condiciones iniciales: [x0, y0]
+z0 = [4,30]
+# Intervalo de tiempo (ej: de t=0 a t=20)
+t_span = (0, 20)
+t_eval = np.linspace(t_span[0], t_span[1], 500)
+
+def sistema(t, z, a, b, c, d):
+    x, y = z
+    dxdt = x * (c * y - d)
+    dydt = y * (a - b * x)
+    return [dxdt, dydt]
+
+sol = solve_ivp(sistema, t_span, z0, args=(a, b, c, d), t_eval=t_eval, method='RK45')
+
+
+
+Graficar = [campo_de_direcciones, plano_temporal, plano_fase]
+### plot campo de direcciones
+if Graficar[0]:
+    plt.subplot()
+    x = np.arange(0,40,1)
+    y = np.arange(0,75,1)
+    X, Y = np.meshgrid(x,y)
+    dy= Y*(a-b*X)
+    dx= X*(c*Y-d)
+    norm = np.sqrt(dx**2 + dy**2)
+    dyu = dy/(norm)
+    dxu = dx/(norm)
+    plt.quiver(X,Y,dxu,dyu,color='red')
+
+    plt.xlim(0,2*a/b)
+    plt.ylim(0, 2*d/b)
+    plt.grid(True)
+
+    plt.show()
+
+######
+
+
+# Graficar Y(t) X(t)
+if Graficar[1]:
+    plt.plot(sol.t, sol.y[0], label='X(t)')
+    plt.plot(sol.t, sol.y[1], label='Y(t)')
+    plt.xlabel('Tiempo')
+    plt.ylabel('Valores')
+    plt.legend()
+    plt.title('Solución del sistema de ODEs')
+    plt.grid()
+    plt.show()
+
+# Graficar en el plano X vs Y
+if Graficar[2]:
+    plt.figure(figsize=(8, 6))
+    plt.plot(sol.y[0], sol.y[1], label='Trayectoria (X vs Y)')
+    plt.xlabel('X')
+    plt.ylabel('Y')
+    plt.title('Diagrama de fase del sistema')
+    plt.grid(True)
+    plt.legend()
+    plt.show()

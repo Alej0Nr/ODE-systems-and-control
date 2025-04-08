@@ -1,7 +1,7 @@
 import sympy as sp
 
 
-def solve_M(A,B): #conviene usar Np.Array
+def solve_M(A,B): #conviene usar Np.Arrayj
     M = sp.Matrix(sp.BlockMatrix([sp.eye(A.rows) - A,-B])) #eye_like(A)
     #usar concatenate 
     return M.nullspace()
