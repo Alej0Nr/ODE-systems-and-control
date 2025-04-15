@@ -1,76 +1,133 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
+from scipy.optimize import fmin
 
-
-
-# Que graficar
-campo_de_direcciones: bool = False
-plano_temporal: bool = False
-plano_fase: bool = True
-
-
-a: float = 0.4807
-b: float = 0.02482
-c: float = 0.02756
-d: float = 0.9272
-# Condiciones iniciales: [x0, y0]
-z0 = [4,30]
+a, b, c, d = 0.4807, 0.02482, 0.02756, 0.9272
+# Condiciones iniciales: (P_0, N_0)
+z0 = [4,30] 
 # Intervalo de tiempo (ej: de t=0 a t=20)
 t_span = (0, 20)
 t_eval = np.linspace(t_span[0], t_span[1], 500)
 
+
+
 def sistema(t, z, a, b, c, d):
-    x, y = z
-    dxdt = x * (c * y - d)
-    dydt = y * (a - b * x)
-    return [dxdt, dydt]
-
-sol = solve_ivp(sistema, t_span, z0, args=(a, b, c, d), t_eval=t_eval, method='RK45')
+    p, n = z
+    dpdt = p * (c * n - d)
+    dndt = n * (a - b * p)
+    return [dpdt, dndt]
 
 
 
-Graficar = [campo_de_direcciones, plano_temporal, plano_fase]
-### plot campo de direcciones
-if Graficar[0]:
+def lv_campo_direcciones(parameters):
+    a, b, c, d = parameters
+    def campo(p_arange,n_arange, color):
+        P, N = np.meshgrid(p_arange,n_arange)
+        dN= N*(a-b*P)           
+        dP= P*(c*N-d)
+        norm = np.sqrt(dP**2 + dN**2)
+        dNu = dN/norm
+        dPu = dP/norm
+        plt.quiver(P,N,dPu,dNu,color = color)
+
     plt.subplot()
-    x = np.arange(0,40,1)
-    y = np.arange(0,75,1)
-    X, Y = np.meshgrid(x,y)
-    dy= Y*(a-b*X)
-    dx= X*(c*Y-d)
-    norm = np.sqrt(dx**2 + dy**2)
-    dyu = dy/(norm)
-    dxu = dx/(norm)
-    plt.quiver(X,Y,dxu,dyu,color='red')
-
-    plt.xlim(0,2*a/b)
-    plt.ylim(0, 2*d/b)
+    campo(np.arange(-5,40,1),np.arange(-5,40,1),'gray')
+    campo(np.arange(0,40,1),np.arange(0,40,1),'blue')
+    plt.plot(0,0,'r.')
+    plt.plot(a/b,d/c,'r.')
+    plt.xlim(-5,40)
+    plt.ylim(-5,40)
     plt.grid(True)
 
     plt.show()
 
-######
 
-
-# Graficar Y(t) X(t)
-if Graficar[1]:
-    plt.plot(sol.t, sol.y[0], label='X(t)')
-    plt.plot(sol.t, sol.y[1], label='Y(t)')
-    plt.xlabel('Tiempo')
-    plt.ylabel('Valores')
+def lv_plano_temporal(parameters):
+    solucion = solve_ivp(sistema, t_span, z0, t_eval= t_eval, args= parameters, method='BDF')
+    plt.plot(solucion.t, solucion.y[0], label='Predador P(t)')
+    plt.plot(solucion.t, solucion.y[1], label='Presa N(t)')
+    plt.xlabel('Año')
+    plt.ylabel('Población')
     plt.legend()
-    plt.title('Solución del sistema de ODEs')
+    plt.xticks(np.arange(0,t_span[1]+1,2))
     plt.grid()
     plt.show()
 
-# Graficar en el plano X vs Y
-if Graficar[2]:
-    plt.figure(figsize=(8, 6))
-    plt.plot(sol.y[0], sol.y[1], label='Trayectoria (X vs Y)')
-    plt.xlabel('X')
-    plt.ylabel('Y')
-    plt.title('Diagrama de fase del sistema')
-    plt.grid(True)
-    plt.legend()
+
+def lv_plano_fase(parameters, z0):
+    """
+    Toma los parametros del sistema y un vector de condiciones iniciales y plotea
+    la solución para cada una de estas
+    """
+    for ci in z0:
+        solucion = solve_ivp(sistema, t_span, ci, args= parameters, t_eval=t_eval, method='BDF', rtol= 1e-11)
+        plt.plot(solucion.y[0], solucion.y[1])
+    plt.xlabel('P')
+    plt.ylabel('N')
+    plt.title('Diagrama de fase del sistema L-V')
+    plt.grid()
     plt.show()
+
+
+t_eval2 = np.linspace(t_span[0], t_span[1], 21)
+
+def lverr(parameters):
+
+    a, b, c, d = parameters
+    sis = solve_ivp(sistema, t_span, [4,30], args=(a,b,c,d), t_eval=t_eval2, method='BDF')
+    value = (sis.y[0]-L)**2 + (sis.y[1]-H)**2
+    error = sum(value)
+    return error
+
+def lv_fit(guess):
+    parameters = fmin(lverr, guess, disp = False)
+    sol2 = solve_ivp(sistema, t_span, z0, args=parameters, t_eval=t_eval2, method='BDF')
+    plt.plot(sol2.t, sol2.y[0],'-,', label='Modelo Lince', color = 'red')
+    plt.plot(sol2.t, sol2.y[1], '-,', label='Modelo Liebre', color = 'seagreen')
+    plt.plot(L,'.', color = 'darkorange', label = 'Linces')
+    plt.plot(H,'.', color = 'teal', label = 'Liebres')
+    plt.xlabel('Año')
+    plt.ylabel('Población')
+    plt.xticks(np.arange(0,21,2))
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+L = np.array([4, 6.1, 9.8, 35.2, 59.4, 41.7, 19, 13, 8.3, 9.1, 7.4, 8, 12.3, 19.5, 45.7, 51.1, 29.7, 15.8, 9.7, 10.1, 8.6]) # Linces obs
+H = np.array([30, 47.2, 70.2, 77.4, 36.3, 20.6, 18.1, 21.4, 22, 25.4, 27.1, 40.3, 57, 76.6, 52.3, 19.5, 11.2, 7.6, 14.6, 16.2, 24.7]) # Liebres obs
+guess = (1,.02,.02,1) # punto de partida para empezar a buscar el minimo
+fitted_parameters = fmin(lverr, guess, disp = False, ftol= 1e-6) # a, b, c, d que minimizan el error
+
+def lv_fit_tf(guess):
+    plt.figure(1)
+    plt.subplot(211)
+    parameters = fmin(lverr, guess, disp = False)
+    sol2 = solve_ivp(sistema, t_span, z0, args=parameters, t_eval=t_eval2, method='BDF')
+    plt.plot(sol2.t, sol2.y[0],'-', label='Modelo Lince', color = 'red')
+    plt.plot(sol2.t, sol2.y[1], '-', label='Modelo Liebre', color = 'seagreen')
+    plt.plot(L,'.', color = 'darkorange', label = 'Linces')
+    plt.plot(H,'.', color = 'teal', label = 'Liebres')
+    plt.xlabel('Año')
+    plt.ylabel('Población')
+    plt.xticks(np.arange(0,21,2))
+    plt.legend()
+    plt.grid()
+    plt.subplot(212)
+    solucion = solve_ivp(sistema, t_span, z0, args= parameters, t_eval=t_eval, method='BDF', rtol= 1e-11)
+    plt.plot(solucion.y[1], solucion.y[0],color= 'indigo')
+    plt.xlabel('Liebres')
+    plt.ylabel('Linces')
+    plt.grid()
+    plt.plot(H, L, '.', color= 'maroon')
+    plt.xticks(np.arange(0,81,20))
+    plt.yticks(np.arange(0,71,10))
+    plt.show()
+
+    
+
+# lv_campo_direcciones([a,b,c,d])
+# lv_plano_temporal([a,b,c,d])
+# lv_plano_fase([a,b,c,d], [(a/b+i,d/c+i) for i in range(0,40) if (a/b+i<200 and d/c+i<200)])
+# lv_fit(guess)
+# lv_fit_tf(guess)
