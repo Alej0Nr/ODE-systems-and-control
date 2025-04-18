@@ -3,6 +3,12 @@ import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 from scipy.optimize import fmin
 
+"""
+software implementation of
+Sontag - Systems_biology_notes_8.0.11
+Chapter 2.5
+"""
+
 a, b, c, d = 0.4807, 0.02482, 0.02756, 0.9272
 # Condiciones iniciales: (N_0, P_0)
 z0 = [30, 4] 
@@ -20,7 +26,7 @@ def sistema(t, z, a, b, c, d):
 
 
 
-def lv_campo_direcciones(parameters):
+def lv_campo_direcciones(parameters, geq_col = 'blue', leq_col = 'gray', points = True):
     a, b, c, d = parameters
     def campo(p_arange,n_arange, color):
         P, N = np.meshgrid(p_arange,n_arange)
@@ -32,10 +38,11 @@ def lv_campo_direcciones(parameters):
         plt.quiver(P,N,dPu,dNu,color = color)
 
     plt.subplot()
-    campo(np.arange(-5,40,1),np.arange(-5,40,1),'gray')
-    campo(np.arange(0,40,1),np.arange(0,40,1),'blue')
-    plt.plot(0,0,'r.')
-    plt.plot(a/b,d/c,'r.')
+    campo(np.arange(-5,40,1),np.arange(-5,40,1),leq_col)
+    campo(np.arange(0,40,1),np.arange(0,40,1),geq_col)
+    if points:
+        plt.plot(0,0,'r.')
+        plt.plot(a/b,d/c,'r.')
     plt.xlim(-5,40)
     plt.ylim(-5,40)
     plt.grid(True)
