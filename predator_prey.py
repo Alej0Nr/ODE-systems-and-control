@@ -26,7 +26,7 @@ def sistema(t, z, a, b, c, d):
 
 
 
-def lv_campo_direcciones(parameters, geq_col = 'blue', leq_col = 'gray', points = True):
+def lv_campo_direcciones(parameters, points = True):
     a, b, c, d = parameters
     def campo(p_arange,n_arange, color):
         P, N = np.meshgrid(p_arange,n_arange)
@@ -38,8 +38,8 @@ def lv_campo_direcciones(parameters, geq_col = 'blue', leq_col = 'gray', points 
         plt.quiver(P,N,dPu,dNu,color = color)
 
     plt.subplot()
-    campo(np.arange(-5,40,1),np.arange(-5,40,1),leq_col)
-    campo(np.arange(0,40,1),np.arange(0,40,1),geq_col)
+    campo(np.arange(-5,40,1),np.arange(-5,40,1),'gray')
+    campo(np.arange(0,40,1),np.arange(0,40,1),'blue')
     if points:
         plt.plot(0,0,'r.')
         plt.plot(a/b,d/c,'r.')
@@ -49,6 +49,46 @@ def lv_campo_direcciones(parameters, geq_col = 'blue', leq_col = 'gray', points 
 
     plt.show()
 
+#### GPT version 
+def lv_campo_direcciones(parameters, points=True):
+    a, b, c, d = parameters
+
+    # create full grid
+    x = np.arange(-5, 40, 1)
+    y = np.arange(-5, 40, 1)
+    P, N = np.meshgrid(x, y)
+
+    # compute vector field
+    dN = N * (a - b * P)
+    dP = P * (c * N - d)
+    norm = np.hypot(dP, dN)
+    dNu = dN / norm
+    dPu = dP / norm
+
+    # mask arrays
+    positive_mask = (P >= 0) & (N >= 0)
+
+    # gray where NOT both ≥0
+    dPu_gray = np.ma.masked_where(positive_mask, dPu)
+    dNu_gray = np.ma.masked_where(positive_mask, dNu)
+
+    # blue where both ≥0
+    dPu_blue = np.ma.masked_where(~positive_mask, dPu)
+    dNu_blue = np.ma.masked_where(~positive_mask, dNu)
+
+    # plot
+    plt.figure()
+    plt.quiver(P, N, dPu_gray, dNu_gray, color='gray')
+    plt.quiver(P, N, dPu_blue, dNu_blue, color='blue')
+
+    if points:
+        plt.plot(0, 0, 'r.')
+        plt.plot(a/b, d/c, 'r.')
+
+    plt.xlim(-5, 40)
+    plt.ylim(-5, 40)
+    plt.grid(True)
+    plt.show()
 
 def lv_plano_temporal(parameters):
     solucion = solve_ivp(sistema, t_span, z0, t_eval= t_eval, args= parameters, method='BDF')
@@ -140,10 +180,9 @@ def lv_fit_tf(guess, Predator, Prey):
 def cis(n):
     return [(d/c , a/b - i) for i in np.linspace(0, a/b, n + 2) if (a/b -i != 0)]
 
-# lv_campo_direcciones([a,b,c,d])
+
+lv_campo_direcciones([a,b,c,d])
 # lv_plano_temporal([a,b,c,d])
-# [(a/b+i,d/c+i) for i in range(0,100) if (a/b+i<200 and d/c+i<200)]
 # lv_plano_fase([a,b,c,d], cis(8), True)
-# lv_plano_fase([a,b,c,d], [(d/c,a/b+i) for i in range(0,100) if (d/c+i<200 and a/b+i<200)])
 # lv_fit(guess, L, H)
 # lv_fit_tf(guess, L, H)
