@@ -18,7 +18,6 @@ def plano_temporal(parameters, desde = None, hasta = None):
         plt.plot(solucion.t, solucion.y[0], label='S(t)', color = 'blue')
         plt.plot(solucion.t, solucion.y[1], label='I(t)', color = 'green')
         plt.plot(solucion.t, solucion.y[2], label='R(t)', color = 'red')
-        print([solucion.y[0][-1],solucion.y[1][-1],solucion.y[2][-1]])
     elif len(parameters)==3:
         solucion1 = solve_ivp(SIR, (t_span[0],desde), z0, t_eval= np.linspace(t_span[0], desde, 1000), args= parameters[:-1], method='RK45')
         z0n=[solucion1.y[0][-1],solucion1.y[1][-1],solucion1.y[2][-1]]
