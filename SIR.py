@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 
 
-
 def SIR(t, z, nu, beta, u=0):
     s, i, r = z
     dsdt = -(1-u)*beta*s*i
@@ -54,7 +53,7 @@ def plano_SI(parameters, ci = [999,1,0] , intervalo_tiempo = (0,12), intervalo_c
             plano_SI([nu,beta,control], intervalo_control= (2,5))
     """
     def ploter(z0, intervalo, control = False):
-        solucion = solve_ivp(SIR, intervalo, z0, t_eval= np.linspace(*intervalo, np.ceil((intervalo[1]-intervalo[0]))*10), args= parameters if control == True else parameters[:2], method='RK45')
+        solucion = solve_ivp(SIR, intervalo, z0, t_eval= np.linspace(*intervalo, np.ceil((intervalo[1]-intervalo[0]))*10), args= parameters if control else parameters[:2], method='RK45')
         plt.plot(solucion.y[0], solucion.y[1], color= 'mediumblue')
         z0 = [solucion.y[0][-1],solucion.y[1][-1],solucion.y[2][-1]]
         return z0
@@ -89,6 +88,7 @@ def plano_SI(parameters, ci = [999,1,0] , intervalo_tiempo = (0,12), intervalo_c
 
 
 
+
 beta = 0.003
 nu = 1
 z0 = [999, 1, 0] 
@@ -99,16 +99,16 @@ z0 = [999, 1, 0]
 """si desea ver como afecta un control use"""
 
 control = 0.34
-plano_temporal([nu, beta, control], t_span=(0,15))
+# plano_temporal([nu, beta, control], t_span=(0,15))
 
 """si desea ver como el control afecta en un intervalo de tiempo use"""
 
 # plano_temporal([nu, beta, control], desde=2, hasta=4)
 
 
-
+""" Para el plano SI """
 # plano_SI([nu,beta], direcciones=True)
 # plano_SI([nu,beta], intervalo_tiempo=(0,5))
 # plano_SI([nu,beta,control],direcciones= True)
 # plano_SI([nu,beta,control], intervalo_control= (2,4), intervalo_tiempo=(0,8))
-# plano_SI([nu,beta,control], intervalo_control= (2,5))
+plano_SI([nu,beta,control], intervalo_control= (2,5))

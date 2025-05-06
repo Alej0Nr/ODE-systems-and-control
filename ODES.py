@@ -26,6 +26,7 @@ class ODE:
         dX = self.dxdt(X, Y)
         dY = self.dydt(X, Y)
         norm = np.sqrt(dX**2 + dY**2)
+        norm = np.where(norm == 0, 1e-8, norm)
         dXu = dX/norm
         dYu = dY/norm
         plt.quiver(X,Y,dXu,dYu,color = color)
@@ -40,10 +41,10 @@ class ODE:
         plt.xticks(np.arange(0, self.t_span[1]+1,2))
         plt.grid(True)
 
-    def plano_fase(self, z0s):
+    def plano_fase(self, z0s, color = 'mediumblue'):
         for ci in z0s:
             solucion = solve_ivp(self.sistema, self.t_span, ci, method='RK45', rtol= 1e-11)
-            plt.plot(solucion.y[0], solucion.y[1])
+            plt.plot(solucion.y[0], solucion.y[1], color= color)
         plt.grid(True)
 
 
@@ -87,5 +88,5 @@ def ejemplo1():
     ex.plano_fase([z0])
     plt.show()
     
-ejemplo1()
+# ejemplo1()
 
