@@ -38,7 +38,7 @@ def plano_temporal(parameters, desde = None, hasta = None, t_span = (0, 12), z0 
 
 
 
-def plano_SI(parameters, ci = [999,1,0] , intervalo_tiempo = (0,12), intervalo_control = None, direcciones= False):
+def plano_SI(parameters, ci = [999,1,0] , intervalo_tiempo = (0,12), intervalo_control = None, direcciones= False,color = 'blue'):
     """
     Grafica el plano SvsI con o sin intervalo de control, por default usa como condición inicial S0=999, I0=1 y R0=0.
     
@@ -54,7 +54,7 @@ def plano_SI(parameters, ci = [999,1,0] , intervalo_tiempo = (0,12), intervalo_c
     """
     def ploter(z0, intervalo, control = False):
         solucion = solve_ivp(SIR, intervalo, z0, t_eval= np.linspace(*intervalo, np.ceil((intervalo[1]-intervalo[0]))*10), args= parameters if control else parameters[:2], method='RK45')
-        plt.plot(solucion.y[0], solucion.y[1], color= 'mediumblue')
+        plt.plot(solucion.y[0], solucion.y[1], color= color)
         z0 = [solucion.y[0][-1],solucion.y[1][-1],solucion.y[2][-1]]
         return z0
     
@@ -77,13 +77,13 @@ def plano_SI(parameters, ci = [999,1,0] , intervalo_tiempo = (0,12), intervalo_c
         dSdt = dsdt/norm
         dIdt = didt/norm
         plt.quiver(S,I,dSdt,dIdt, color='lightgrey')
-        
+    plt.plot(parameters[0]/parameters[1],0,'o')
     plt.xlabel('S')
     plt.ylabel('I')
     plt.ylim(0,1000)
     plt.xlim(0,1000)
     plt.grid()
-    plt.show()
+
 
 
 
@@ -98,17 +98,22 @@ z0 = [999, 1, 0]
 
 """si desea ver como afecta un control use"""
 
-control = 0.34
+# control = 0.34
 # plano_temporal([nu, beta, control], t_span=(0,15))
 
 """si desea ver como el control afecta en un intervalo de tiempo use"""
 
-# plano_temporal([nu, beta, control], desde=2, hasta=4)
+# plano_temporal([nu, beta, control], desde=2, hasta=5)
 
 
 """ Para el plano SI """
 # plano_SI([nu,beta], direcciones=True)
 # plano_SI([nu,beta], intervalo_tiempo=(0,5))
 # plano_SI([nu,beta,control],direcciones= True)
-# plano_SI([nu,beta,control], intervalo_control= (2,4), intervalo_tiempo=(0,8))
-plano_SI([nu,beta,control], intervalo_control= (2,5))
+control = 0.4103481292724609 #deepseek
+plano_SI([nu,beta,control], intervalo_control= (3,5), intervalo_tiempo=(0,12))
+control = 0.410347747802734
+plano_SI([nu,beta,control], intervalo_control= (3,5), intervalo_tiempo=(0,12),color='red')
+plt.axvline(x = nu/beta, color = 'b', label = 'R0')
+plt.show()
+# plano_SI([nu,beta,control], intervalo_control= (2,5))
