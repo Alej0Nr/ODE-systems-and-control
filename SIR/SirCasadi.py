@@ -141,5 +141,5 @@ def RK2(sols=False):
     sirS.show()
 
 
-EE(True)
+# EE(True)
 RK2(True)

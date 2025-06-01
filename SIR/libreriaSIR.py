@@ -57,11 +57,17 @@ class SIRsim:
 
     def cambio_control(self, control):
         self.control = control
-
-    def grafica_temporal(self, colores=['mediumblue','red','green']):
-        plt.plot(self.t,self.S,label=r'$S(t)$', color = colores[0])
-        plt.plot(self.t,self.I,label=r'$I(t)$', color = colores[1])
-        plt.plot(self.t,self.R,label=r'$R(t)$', color = colores[2])
+    def cambio_tiempo_con(self, tiempo_con):
+        self.tiempo_con = tiempo_con
+    def cambio_Ci(self, Ci):
+        self.ci=Ci
+    def cambio_tiempo_sim(self, tiempo_sim):
+        self.tiempo_sim=tiempo_sim
+    
+    def grafica_temporal(self, colores=['mediumblue','red','green'], label= True):
+        plt.plot(self.t,self.S,label=r'$S(t)$' if label else None, color = colores[0])
+        plt.plot(self.t,self.I,label=r'$I(t)$' if label else None, color = colores[1])
+        plt.plot(self.t,self.R,label=r'$R(t)$' if label else None, color = colores[2])
         plt.xticks(np.arange(*self.tiempo_sim,1))
         
     
