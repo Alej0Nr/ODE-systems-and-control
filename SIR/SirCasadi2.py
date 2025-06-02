@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 
 desde = 3
-cant_dias = 2
+cant_dias = 5
 N=100
 dt = cant_dias/N
 
@@ -67,7 +67,7 @@ def RK2(sols=False):
 
     # Función objetivo
     S_star = sim.R_star  # valor deseado de S al final
-    sirRK2.minimize((S[-1] - S_star)**2 + sumsqr(u))
+    sirRK2.minimize((S[-1] - S_star)**2 + sumsqr(u) - R[-1] + I[-1])
 
     # Resolver
     p_opts = {}
@@ -95,6 +95,8 @@ def RK2(sols=False):
     sim.grafica_temporal(label=False)
     plt.xticks(np.arange(0,desde+cant_dias+5,1))
     plt.axhline(y = S_star,color= 'black', linestyle = ':', label = r'$R^\ast$')
+    plt.plot(desde,0,marker= 6, color='dodgerblue')
+    plt.plot(desde+cant_dias,0,marker=6,color='dodgerblue')
     plt.grid()
     plt.legend()
     plt.show()
