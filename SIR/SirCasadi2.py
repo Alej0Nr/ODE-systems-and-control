@@ -6,14 +6,14 @@ import matplotlib.pyplot as plt
 
 desde = 3
 cant_dias = 5
-N=100
+N=50
 dt = cant_dias/N
 
 sim = SIRsim([999,1,0],(0,desde), params=(1,0.003))
 sim.simulacion()
 
 
-def RK2(sols=False):
+def RK2():
     nu = sim.params[0]
     beta = sim.params[1]
     sirRK2 = Opti()
@@ -31,9 +31,9 @@ def RK2(sols=False):
 
     # Ecuaciones del modelo (RK2)
     for k in range(N):
-        if k>0:
-            sirRK2.subject_to(u[k]<=1)
-            sirRK2.subject_to(u[k]>=0)
+        # if k>0:
+        #     sirRK2.subject_to(u[k]<=1)
+        #     sirRK2.subject_to(u[k]>=0)
         # k1
         S_k = S[k]
         I_k = I[k]
@@ -61,42 +61,45 @@ def RK2(sols=False):
 
 
     # Restricciones sobre las variables
+    sirRK2.subject_to(sirRK2.bounded(0,u,1))
     sirRK2.subject_to(S >= 0)
     sirRK2.subject_to(I >= 0)
     sirRK2.subject_to(R >= 0)
 
     # Función objetivo
     S_star = sim.R_star  # valor deseado de S al final
-    sirRK2.minimize((S[-1] - S_star)**2 + sumsqr(u) - R[-1] + I[-1])
+    sirRK2.minimize((S[-1] - S_star)**2 + sumsqr(u) + I[-1] -R[-1])
 
     # Resolver
     p_opts = {}
-    s_opts = {'print_level': 0, 'sb': 'yes'}
+    s_opts = {'print_level': 2, 'sb': 'yes'}
     sirRK2.solver('ipopt',p_opts,s_opts)
     solRK2 = sirRK2.solve()
-    print(solRK2.value(I[-1]))
+    # print(solRK2.value(I[-1]))
 
     tiempos = np.linspace(desde, desde+cant_dias, N+1)
-    plt.plot(tiempos[1:N],solRK2.value(u[1:N]),label=r'$u(t)$')
-    plt.ylim(0,1)
-    plt.yticks(np.arange(0,1.05,.05))
+    plt.subplot(211)
+    plt.plot([0,3],[0,0], color='navy')
+    plt.plot(tiempos,solRK2.value(u),label=r'$u(t)$',color='navy', drawstyle='default')
+    plt.plot([desde+cant_dias,desde+cant_dias+2],[0,0],color='navy')
+    plt.ylim(-0.05,1.05)
+    plt.yticks(np.arange(0,1.05,.1))
     plt.grid()
     plt.legend()
-    plt.show()
 
-    
+    plt.subplot(212)
     sim.grafica_temporal()
     plt.plot(tiempos,solRK2.value(S),color='mediumblue')
     plt.plot(tiempos,solRK2.value(I),color='red')
     plt.plot(tiempos,solRK2.value(R),color='green')
     sim.cambio_Ci([solRK2.value(S)[-1],solRK2.value(I)[-1],solRK2.value(R)[-1]])
-    sim.cambio_tiempo_sim((desde+cant_dias,desde+cant_dias+5))
+    sim.cambio_tiempo_sim((desde+cant_dias,desde+cant_dias+2))
     sim.simulacion()
     sim.grafica_temporal(label=False)
-    plt.xticks(np.arange(0,desde+cant_dias+5,1))
+    plt.xticks(np.arange(0,desde+cant_dias+2.1,1))
     plt.axhline(y = S_star,color= 'black', linestyle = ':', label = r'$R^\ast$')
-    plt.plot(desde,0,marker= 6, color='dodgerblue')
-    plt.plot(desde+cant_dias,0,marker=6,color='dodgerblue')
+    # plt.plot(desde,0,marker= 6, color='dodgerblue')
+    # plt.plot(desde+cant_dias,0,marker=6,color='dodgerblue')
     plt.grid()
     plt.legend()
     plt.show()
