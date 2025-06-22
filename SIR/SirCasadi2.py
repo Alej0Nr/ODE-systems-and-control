@@ -72,7 +72,7 @@ def RK2():
 
     # Resolver
     p_opts = {}
-    s_opts = {'print_level': 2, 'sb': 'yes'}
+    s_opts = {'print_level': 1, 'sb': 'yes'}
     sirRK2.solver('ipopt',p_opts,s_opts)
     solRK2 = sirRK2.solve()
     # print(solRK2.value(I[-1]))
@@ -97,7 +97,7 @@ def RK2():
     sim.simulacion()
     sim.grafica_temporal(label=False)
     plt.xticks(np.arange(0,desde+cant_dias+2.1,1))
-    plt.axhline(y = S_star,color= 'black', linestyle = ':', label = r'$R^\ast$')
+    plt.axhline(y = S_star,color= 'black', linestyle = ':', label = r'$S^\ast$')
     # plt.plot(desde,0,marker= 6, color='dodgerblue')
     # plt.plot(desde+cant_dias,0,marker=6,color='dodgerblue')
     plt.grid()
