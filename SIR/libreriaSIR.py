@@ -14,7 +14,7 @@ class SIRsim:
     def __init__(self, Ci, tiempo_sim, tiempo_con=None, params=[1,0.003], control=0):
         self.ci = Ci                        # condiciones iniciales
         self.tiempo_sim = tiempo_sim        # tiempo que se desea simular
-        self.params = params                # parametros del sistema
+        self.params = params                # parametros del sistema [nu,beta]
         self.R_star = params[0]/params[1]   # calculamos y guardamos R estrella
         self.tiempo_con = tiempo_con        # tiempo en el que se va a controlar
         self.control = control              # control que se va a aplicar

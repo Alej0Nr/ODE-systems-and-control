@@ -1,7 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
+import os
+os.makedirs("alcanzabilidad", exist_ok=True)
 
+n = 1
 
 def SIR(t, z, nu, beta, u=0):
     s, i, r = z
@@ -14,9 +17,9 @@ def SIR(t, z, nu, beta, u=0):
 def plano_temporal(parameters, desde = None, hasta = None, t_span = (0, 12), z0 = [999,1,0]):
     def ploter(intervalo , z0, control = False, add_label= False):
         sol = solve_ivp(SIR, intervalo, z0, t_eval= np.linspace(intervalo[0], intervalo[1], np.ceil(intervalo[1]-intervalo[0])*10), args= parameters[:2] if control==False else parameters, method='RK45')
-        plt.plot(sol.t, sol.y[0], color = 'mediumblue', label = 'S(t)' if add_label else None)
-        plt.plot(sol.t, sol.y[1], color = 'green', label = 'I(t)' if add_label else None)
-        plt.plot(sol.t, sol.y[2], color = 'red', label = 'R(t)' if add_label else None)
+        plt.plot(sol.t, sol.y[0], color = 'mediumblue', label = r'$S(t)$' if add_label else None)
+        plt.plot(sol.t, sol.y[1], color = 'green', label = r'$I(t)$' if add_label else None)
+        plt.plot(sol.t, sol.y[2], color = 'red', label = r'$R(t)$' if add_label else None)
         z0=[sol.y[0][-1],sol.y[1][-1],sol.y[2][-1]]
         return z0
     if desde == None or hasta == None:
@@ -30,10 +33,11 @@ def plano_temporal(parameters, desde = None, hasta = None, t_span = (0, 12), z0 
         plt.axvspan(desde,hasta, color='lavender')
     else:
         return print("Recuerde ingresar un control")
-    
-
+    plt.xticks(np.arange(t_span[0],t_span[1]+0.1,1))
+    plt.axhline(y = nu/beta,color= 'black', linestyle = ':', label = r'$S^\ast$')
     plt.legend()
     plt.grid()
+    plt.savefig(f'graficos/{n}.svg')
     plt.show()
 
 
@@ -77,7 +81,7 @@ def plano_SI(parameters, ci = [999,1,0] , intervalo_tiempo = (0,12), intervalo_c
         dSdt = dsdt/norm
         dIdt = didt/norm
         plt.quiver(S,I,dSdt,dIdt, color='lightgrey')
-    plt.plot(parameters[0]/parameters[1],0,'o')
+    # plt.plot(parameters[0]/parameters[1],0,'o')
     plt.xlabel('S')
     plt.ylabel('I')
     plt.ylim(0,1000)
@@ -89,12 +93,13 @@ def plano_SI(parameters, ci = [999,1,0] , intervalo_tiempo = (0,12), intervalo_c
 
 
 
+
 beta = 0.003
 nu = 1
 z0 = [999, 1, 0] 
 """si se desea solo graficar el sistema sin control use"""
 
-# plano_temporal([nu, beta])
+# plano_temporal([nu, beta],t_span=(0,12))
 
 """si desea ver como afecta un control use"""
 
@@ -107,13 +112,19 @@ z0 = [999, 1, 0]
 
 
 """ Para el plano SI """
-# plano_SI([nu,beta], direcciones=True)
+plano_SI([nu,beta], direcciones=True)
 # plano_SI([nu,beta], intervalo_tiempo=(0,5))
 # plano_SI([nu,beta,control],direcciones= True)
-control = 0.4103481292724609 #deepseek
-plano_SI([nu,beta,control], intervalo_control= (3,5), intervalo_tiempo=(0,12))
-control = 0.410347747802734
-plano_SI([nu,beta,control], intervalo_control= (3,5), intervalo_tiempo=(0,12),color='red')
-plt.axvline(x = nu/beta, color = 'b', label = 'R0')
-plt.show()
+# control = 0.4103481292724609 #deepseek
+# plano_SI([nu,beta,control], intervalo_control= (3,5), intervalo_tiempo=(0,12))
+# control = 0.410347747802734
+# plano_SI([nu,beta,control], intervalo_control= (3,5), intervalo_tiempo=(0,12),color='red')
+# plt.axvline(x = nu/beta, color = 'black', linestyle = ':', label = r'$S^\ast$')
+# plt.legend()
+# plt.savefig(f'graficos/{n}.svg')
+# plt.show()
 # plano_SI([nu,beta,control], intervalo_control= (2,5))
+
+for u in np.arange(0,1.01,0.01):
+    plano_SI([nu,beta,u], intervalo_control=(2,3), intervalo_tiempo=(0,4))
+plt.show()

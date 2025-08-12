@@ -1,13 +1,11 @@
 from casadi import *
+from parametros import *
 from libreriaSIR import *
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+os.makedirs("graficos", exist_ok=True)
 
-
-desde = 3
-cant_dias = 5
-N=50
-dt = cant_dias/N
 
 sim = SIRsim([999,1,0],(0,desde), params=(1,0.003))
 sim.simulacion()
@@ -27,13 +25,10 @@ def RK2():
     sirRK2.subject_to(S[0] == sim.S[-1])
     sirRK2.subject_to(I[0] == sim.I[-1])
     sirRK2.subject_to(R[0] == sim.R[-1])
-    sirRK2.subject_to(u[0] == 0)
+    #sirRK2.subject_to(u[0] == 0)
 
     # Ecuaciones del modelo (RK2)
     for k in range(N):
-        # if k>0:
-        #     sirRK2.subject_to(u[k]<=1)
-        #     sirRK2.subject_to(u[k]>=0)
         # k1
         S_k = S[k]
         I_k = I[k]
@@ -65,10 +60,15 @@ def RK2():
     sirRK2.subject_to(S >= 0)
     sirRK2.subject_to(I >= 0)
     sirRK2.subject_to(R >= 0)
-
+    flag=desde
+    for k in range(N):
+        if int(flag)==int(flag+dt):
+            #print(k, flag, flag+dt, 'TRUE')
+            sirRK2.subject_to(u[k]==u[k+1])
+        flag+=dt
     # Función objetivo
     S_star = sim.R_star  # valor deseado de S al final
-    sirRK2.minimize((S[-1] - S_star)**2 + sumsqr(u) + I[-1] -R[-1])
+    sirRK2.minimize((S[-1] - S_star)**2) if fcosto==1 else sirRK2.minimize((S[-1] - S_star)**2 + sumsqr(u))
 
     # Resolver
     p_opts = {}
@@ -79,11 +79,12 @@ def RK2():
 
     tiempos = np.linspace(desde, desde+cant_dias, N+1)
     plt.subplot(211)
-    plt.plot([0,3],[0,0], color='navy')
-    plt.plot(tiempos,solRK2.value(u),label=r'$u(t)$',color='navy', drawstyle='default')
+    plt.plot([0,desde],[0,0], color='navy')
+    plt.plot(tiempos,solRK2.value(u),label=r'$u(t)$',color='navy', drawstyle='steps')
     plt.plot([desde+cant_dias,desde+cant_dias+2],[0,0],color='navy')
     plt.ylim(-0.05,1.05)
     plt.yticks(np.arange(0,1.05,.1))
+    plt.xticks(np.arange(0,desde+cant_dias+2.1,1))
     plt.grid()
     plt.legend()
 
@@ -102,8 +103,25 @@ def RK2():
     # plt.plot(desde+cant_dias,0,marker=6,color='dodgerblue')
     plt.grid()
     plt.legend()
-    plt.show()
+    plt.savefig(f'graficos/trozos{fcosto}.svg') if guardar else None
+    plt.show() if graficas else None
+    plt.clf()
 
+    if planoSI:
+        sim2 = SIRsim([999,1,0],(0,desde), params=(1,0.003))
+        sim2.simulacion()
+        sim2.grafica_SI()
+        plt.axvspan(sim2.S[-1],solRK2.value(S)[-1], color='lavender')
+        plt.plot(solRK2.value(S),solRK2.value(I),color="purple")
+        sim2.cambio_Ci([solRK2.value(S)[-1],solRK2.value(I)[-1],solRK2.value(R)[-1]])
+        sim2.cambio_tiempo_sim((desde+cant_dias,desde+cant_dias+10))
+        sim2.simulacion()
+        sim2.grafica_SI()
+        plt.xlabel('Suceptibles')
+        plt.ylabel('Infectados')
+        plt.savefig(f'graficos/SItrozos{fcosto}.svg') if guardar else None
+        plt.show() if graficas else None
+        plt.clf()
 
 
 RK2()
